@@ -1,0 +1,28 @@
+name: Build Android APK
+on:
+  workflow_dispatch: # Manuel başlatma butonu sağlar
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Android Project
+        run: npx expo export --platform android
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: yevmiye-app-apk
+          path: dist/*.apk
