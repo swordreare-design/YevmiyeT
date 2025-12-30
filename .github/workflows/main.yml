@@ -9,27 +9,34 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
 
-      - name: Build Web Assets
-        run: npx expo export
-
-      - name: Create Dummy APK for Test
-        # Not: Gerçek bir yerel derleme için Android SDK gerekir. 
-        # Expo Dashboard kullanmadan doğrudan APK üretmek için bu adım kritik.
+      - name: Build with Gradle
+        # Bu adım projenin içinde /android klasörü varsa çalışır
         run: |
-          mkdir -p build-output
-          cp -r dist/* build-output/
-          zip -r my-app-package.zip build-output/
+          if [ -d "android" ]; then
+            cd android && ./gradlew assembleRelease
+          else
+            echo "Android klasörü bulunamadı, Expo Export deneniyor..."
+            npx expo export --platform android
+          fi
 
-      - name: Upload Package
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: my-app-bundle
-          path: my-app-package.zip
+          name: android-release-apk
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            dist/
